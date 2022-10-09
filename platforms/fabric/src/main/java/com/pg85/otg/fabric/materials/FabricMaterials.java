@@ -24,7 +24,8 @@ public class FabricMaterials extends LocalMaterials {
 
     public static void init() {
 
-        //Adding tags handled in util.FabricBlockTags class
+        //Adding tags moved to src/main/resources/data/otg/tags/blocks/
+        //If reverting to code form, make a data generator class FabricBlockTags and use TagKey<Block> and TagKey.of.
 
         // Coral
         CORAL_BLOCKS = Arrays.stream(CORAL_BLOCKS_TAG).map(block -> FabricMaterialData.ofBlockState(block.defaultBlockState())).collect(Collectors.toList());

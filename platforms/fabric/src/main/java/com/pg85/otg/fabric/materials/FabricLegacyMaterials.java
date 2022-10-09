@@ -198,8 +198,6 @@ public class FabricLegacyMaterials {
                 return Blocks.LECTERN.defaultBlockState();
             case "lordsmellypants":
                 return Blocks.FLOWER_POT.defaultBlockState();
-            case "frank":
-                return Blocks.JUKEBOX.defaultBlockState();
             default:
                 return null;
         }

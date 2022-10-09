@@ -288,7 +288,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
     @Override
     public Holder<Biome> getNoiseBiome(int biomeX, int biomeY, int biomeZ, Climate.Sampler p_186738_)
     {
-        return Holder.direct(this.registry.get(this.keyLookup.get(this.layer.get().sample(biomeX, biomeZ))));
+        return this.registry.getHolderOrThrow(this.keyLookup.get(this.layer.get().sample(biomeX, biomeZ)));
     }
 
     @Override

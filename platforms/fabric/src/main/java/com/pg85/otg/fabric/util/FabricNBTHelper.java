@@ -26,15 +26,8 @@ public class FabricNBTHelper extends LocalNBTHelper {
             return null;
         }
         CompoundTag nbt = new CompoundTag();
+        tileEntity.saveWithFullMetadata();
 
-        //do tileEntity.saveMetadata(nbt); but with reflection
-        try {
-            Method m = BlockEntity.class.getDeclaredMethod("saveMetadata", new Class[] {CompoundTag.class});
-            m.setAccessible(true);
-            m.invoke(tileEntity, nbt);
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            OTG.getEngine().getLogger().log(LogLevel.ERROR, LogCategory.MAIN, "tileEntity.saveMetadata() reflection access failed");
-        }
         // Double up, just to be safe. It should be x, y, z.
         //nmsTag.remove("pos");
         nbt.remove("x");
