@@ -52,11 +52,13 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 public class ForgeBiome implements IBiome
 {
 	private final Biome biomeBase;
+	private final Holder<Biome> holder;
 	private final IBiomeConfig biomeConfig;
 	
-	public ForgeBiome(Biome biomeBase, IBiomeConfig biomeConfig)
+	public ForgeBiome(Holder<Biome> biomeBase, IBiomeConfig biomeConfig)
 	{
-		this.biomeBase = biomeBase;
+		this.biomeBase = biomeBase.value();
+		this.holder = biomeBase;
 		this.biomeConfig = biomeConfig;
 	}
 	
@@ -75,6 +77,11 @@ public class ForgeBiome implements IBiome
 	public Biome getBiomeBase()
 	{
 		return biomeBase;
+	}
+
+	public Holder<Biome> getHolder()
+	{
+		return holder;
 	}
 
 	public static Biome createOTGBiome(boolean isOceanBiome, IWorldConfig worldConfig, IBiomeConfig biomeConfig)

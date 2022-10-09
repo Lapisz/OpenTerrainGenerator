@@ -674,35 +674,35 @@ public final class OTGNoiseChunkGenerator extends ChunkGenerator
 	}
 	
 	// Mob spawning on chunk tick
-	@Override
-	public WeightedRandomList<MobSpawnSettings.SpawnerData> getMobsAt(Biome biome, StructureFeatureManager structureManager, MobCategory entityClassification, BlockPos blockPos)
-	{
-		if (!structureManager.hasAnyStructureAt(blockPos))
-		{
-			return super.getMobsAt(biome, structureManager, entityClassification, blockPos);
-		} else {
-			WeightedRandomList<MobSpawnSettings.SpawnerData> spawns = net.minecraftforge.common.world.StructureSpawnManager.getStructureSpawns(structureManager, entityClassification, blockPos);
-			if (spawns != null) return spawns;
-			return (entityClassification == MobCategory.UNDERGROUND_WATER_CREATURE || entityClassification == MobCategory.AXOLOTLS)
-					&& structureManager.getStructureAt(blockPos, StructureFeature.OCEAN_MONUMENT).isValid()
-					? MobSpawnSettings.EMPTY_MOB_LIST
-					: super.getMobsAt(biome, structureManager, entityClassification, blockPos);
-		}
-	}
+//	@Override
+//	public WeightedRandomList<MobSpawnSettings.SpawnerData> getMobsAt(Holder<Biome> biome, StructureFeatureManager structureManager, MobCategory entityClassification, BlockPos blockPos)
+//	{
+//		if (!structureManager.hasAnyStructureAt(blockPos))
+//		{
+//			return super.getMobsAt(biome, structureManager, entityClassification, blockPos);
+//		} else {
+//			WeightedRandomList<MobSpawnSettings.SpawnerData> spawns = net.minecraftforge.common.world.StructureSpawnManager.getStructureSpawns(structureManager, entityClassification, blockPos);
+//			if (spawns != null) return spawns;
+//			return (entityClassification == MobCategory.UNDERGROUND_WATER_CREATURE || entityClassification == MobCategory.AXOLOTLS)
+//					&& structureManager.getStructureAt(blockPos, StructureFeature.OCEAN_MONUMENT).isValid()
+//					? MobSpawnSettings.EMPTY_MOB_LIST
+//					: super.getMobsAt(biome, structureManager, entityClassification, blockPos);
+//		}
+//	}
 	
 	// Mob spawning on initial chunk spawn (animals).
 	@SuppressWarnings("deprecation")
 	@Override
 	public void spawnOriginalMobs(WorldGenRegion worldGenRegion)
 	{
-		if (!this.generatorSettingsHolder.get().disableMobGeneration())
+		if (!this.generatorSettingsHolder.value().disableMobGeneration())
 		{
 			int chunkX = worldGenRegion.getCenter().x;
 			int chunkZ = worldGenRegion.getCenter().z;
 			IBiome biome = this.internalGenerator.getCachedBiomeProvider().getBiome(chunkX * Constants.CHUNK_SIZE, chunkZ * Constants.CHUNK_SIZE);
 			WorldgenRandom sharedseedrandom = new WorldgenRandom(new LegacyRandomSource(RandomSupport.seedUniquifier()));
 			sharedseedrandom.setDecorationSeed(worldGenRegion.getSeed(), chunkX << 4, chunkZ << 4);
-			NaturalSpawner.spawnMobsForChunkGeneration(worldGenRegion, ((ForgeBiome)biome).getBiomeBase(), worldGenRegion.getCenter(), sharedseedrandom);
+			NaturalSpawner.spawnMobsForChunkGeneration(worldGenRegion, ((ForgeBiome)biome).getHolder(), worldGenRegion.getCenter(), sharedseedrandom);
 		}
 	}	
 
@@ -835,13 +835,13 @@ public final class OTGNoiseChunkGenerator extends ChunkGenerator
 	@Override
 	public int getSeaLevel()
 	{
-		return this.generatorSettingsHolder.get().seaLevel();
+		return this.generatorSettingsHolder.value().seaLevel();
 	}
 	
 	@Override
 	public int getMinY()
 	{
-		return this.generatorSettingsHolder.get().noiseSettings().minY();
+		return this.generatorSettingsHolder.value().noiseSettings().minY();
 	}	
 
 	public CustomStructureCache getStructureCache(Path worldSaveFolder)
@@ -966,22 +966,11 @@ public final class OTGNoiseChunkGenerator extends ChunkGenerator
 			}
 		}
 	}
-
-	protected final OTGNoiseSampler sampler = new OTGNoiseSampler();
 	
 	@Override
 	public Sampler climateSampler()
 	{
-		return sampler;
-	}
-	
-	public class OTGNoiseSampler implements Climate.Sampler
-	{
-		@Override
-		public TargetPoint sample(int p_186975_, int p_186976_, int p_186977_)
-		{
-			return null;
-		}
+		return Climate.empty();
 	}
 	
 	/** @deprecated */

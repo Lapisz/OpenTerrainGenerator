@@ -64,7 +64,7 @@ public class RavineCarver extends Carver
 			{
 				stretchFactor = 1.0F + random.nextFloat() * random.nextFloat();
 			}
-			heightToHorizontalStretchFactor[y1] = stretchFactor * stretchFactor;
+			heightToHorizontalStretchFactor[y1 + 64] = stretchFactor * stretchFactor;
 		}
 
 		float yawChange = 0.0F;
@@ -106,6 +106,6 @@ public class RavineCarver extends Carver
 	@Override
 	protected boolean isPositionExcluded(float[] cache, double scaledRelativeX, double scaledRelativeY, double scaledRelativeZ, int y)
 	{
-		return (scaledRelativeX * scaledRelativeX + scaledRelativeZ * scaledRelativeZ) * (double) cache[y - 1] + scaledRelativeY * scaledRelativeY / 6.0D >= 1.0D;
+		return (scaledRelativeX * scaledRelativeX + scaledRelativeZ * scaledRelativeZ) * (double) cache[64 + y - 1] + scaledRelativeY * scaledRelativeY / 6.0D >= 1.0D;
 	}
 }
