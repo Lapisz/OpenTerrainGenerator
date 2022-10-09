@@ -409,6 +409,10 @@ public class ShadowChunkGenerator {
 
                 }));
 
+                if(retur.get() == true) {
+                    return true;
+                }
+
                 chunksHandled.putIfAbsent(chunkToHandle, 0);
             }
             if (noiseAffectingStructuresOnly) {
