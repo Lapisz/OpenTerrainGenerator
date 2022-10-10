@@ -108,7 +108,7 @@ public class FabricBiome implements IBiome {
                 RegistryResource registryResource = (RegistryResource)res;
                 GenerationStep.Decoration stage = GenerationStep.Decoration.valueOf(registryResource.getDecorationStage());
                 // This changed from CONFIGURED_FEATURES to PLACED_FEATURE, also registry names changed, so presets will need to be updated.
-                Holder<PlacedFeature> registry = BuiltinRegistries.PLACED_FEATURE.getHolder(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(registryResource.getFeatureKey()))).get();
+                Holder<PlacedFeature> registry = BuiltinRegistries.PLACED_FEATURE.getHolderOrThrow(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(registryResource.getFeatureKey())));
                 if(registry != null)
                 {
                     biomeGenerationSettingsBuilder.addFeature(stage, registry);

@@ -310,8 +310,16 @@ public class FabricPresetLoader extends LocalPresetLoader {
                 oceanTemperatures[3] = otgBiomeId;
             }
 
-            ResourceKey<Biome> k = biomeRegistry.getResourceKey(biome).get();
-            IBiome otgBiome = new FabricBiome(biomeRegistry.getHolderOrThrow(k), biomeConfig.getValue());
+            ResourceKey<Biome> k;
+            IBiome otgBiome;
+            if(biomeRegistry == null) {
+                k = BuiltinRegistries.BIOME.getResourceKey(biome).get();
+                otgBiome = new FabricBiome(BuiltinRegistries.BIOME.getHolderOrThrow(k), biomeConfig.getValue());
+            } else {
+                k = biomeRegistry.getResourceKey(biome).get();
+                otgBiome = new FabricBiome(biomeRegistry.getHolderOrThrow(k), biomeConfig.getValue());
+            }
+
             if(otgBiomeId >= presetIdMapping.length)
             {
                 OTG.getEngine().getLogger().log(LogLevel.FATAL, LogCategory.CONFIGS, "Fatal error while registering OTG biome id's for preset " + preset.getFolderName() + ", most likely you've assigned a DefaultOceanBiome that doesn't exist.");
