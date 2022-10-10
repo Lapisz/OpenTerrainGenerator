@@ -26,6 +26,7 @@ public abstract class WorldGenSettingsMixin {
     @Inject(method = "create", at = @At("HEAD"), cancellable = true)
     private static void injectWorldCreation(RegistryAccess ra, WorldGenProperties wgp, CallbackInfoReturnable<WorldGenSettings> cir)
     {
+        /*
         String levelType = wgp.levelType().trim().toLowerCase();
         //for the otg level type
         if(levelType == Constants.MOD_ID_SHORT) {
@@ -64,7 +65,7 @@ public abstract class WorldGenSettingsMixin {
 
             ));
 
-        }
+        }*/
     }
 
 }

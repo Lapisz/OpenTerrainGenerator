@@ -27,6 +27,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.RegistryFixedCodec;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -46,17 +47,17 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
             (instance) -> {
                 return instance.group(
                         Codec.STRING.fieldOf("preset_name").stable().forGetter((provider) -> provider.presetFolderName),
-                        ExtraCodecs.<Pair<Climate.ParameterPoint, Supplier<Biome>>>nonEmptyList(
-                                RecordCodecBuilder.<Pair<Climate.ParameterPoint, Supplier<Biome>>>create(
+                        ExtraCodecs.<Pair<Climate.ParameterPoint, Holder<Biome>>>nonEmptyList(
+                                RecordCodecBuilder.<Pair<Climate.ParameterPoint, Holder<Biome>>>create(
                                         (p_187078_) -> { return p_187078_.group(Climate.ParameterPoint.CODEC.fieldOf("parameters").forGetter(Pair::getFirst), Biome.CODEC.fieldOf("biome").forGetter(Pair::getSecond)).apply(p_187078_, Pair::of); }
                                 ).listOf()
                         ).xmap(
                                 Climate.ParameterList::new,
-                                (Function<Climate.ParameterList<Supplier<Biome>>, List<Pair<Climate.ParameterPoint, Supplier<Biome>>>>) Climate.ParameterList::values
+                                (Function<Climate.ParameterList<Holder<Biome>>, List<Pair<Climate.ParameterPoint, Holder<Biome>>>>) Climate.ParameterList::values
                         ).fieldOf("biomes").forGetter(
                                 (p_187080_) -> { return p_187080_.parameters; }
                         )
-                ).apply(instance, OTGBiomeProvider::new);
+                ).apply(instance, OTGBiomeProvider::newWithHolderParam);
             }
     );
     public static final Codec<OTGBiomeProvider> CODEC =
@@ -74,7 +75,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
                     }
             ).codec()
             ;
-    private final Climate.ParameterList<Supplier<Biome>> parameters;
+    private final Climate.ParameterList<Holder<Biome>> parameters;
     private final Optional<PresetInstance> preset;
 
     private final Registry<Biome> registry;
@@ -87,12 +88,34 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
         this(presetFolderName, parameters, Optional.empty());
     }
 
+    //return a new OTGBiomeProvider but the Holder<Biome> was converted to Supplier<Biome> before constructing
+    // todo: update this
+    private static OTGBiomeProvider newWithHolderParam(String presetFolderName, Climate.ParameterList<Holder<Biome>> parameters) {
+        Stream<Pair<Climate.ParameterPoint, Supplier<Biome>>> streamOfSuppliers = parameters.values().stream().map(a -> {
+            Supplier<Biome> biomeSupplier = () -> a.getSecond().value();
+            return new Pair(a.getFirst(), biomeSupplier);
+        });
+
+        return new OTGBiomeProvider(
+                presetFolderName,
+                new Climate.ParameterList<Supplier<Biome>>( streamOfSuppliers.collect(Collectors.toList()) )
+        );
+    }
+
     public OTGBiomeProvider(String presetFolderName, Climate.ParameterList<Supplier<Biome>> parameters, Optional<OTGBiomeProvider.PresetInstance> preset)
     {
         super(getAllBiomesByPreset(presetFolderName, (WritableRegistry<Biome>)preset.get().biomes()));
         long seed = 12; // TODO Reimplement this for 1.18, where did seed go? :/
         this.preset = preset;
-        this.parameters = parameters;
+
+        // weird hack to turn ParameterList<Supplier<Biome>> into ParameterList<Holder<Biome>>
+        // todo: update this
+        //change each Pair<ParameterPoint, Supplier> into a Pair<ParameterPoint, Holder>
+        Stream<Pair<Climate.ParameterPoint, Holder<Biome>>> parameterListHolderStream = parameters.values().stream().map(a -> {
+            return new Pair(a.getFirst(), Holder.direct(a.getSecond().get()));
+        });
+        this.parameters = new Climate.ParameterList<Holder<Biome>>(parameterListHolderStream.collect(Collectors.toList()));
+
         this.presetFolderName = presetFolderName;
         this.registry = (WritableRegistry<Biome>)preset.get().biomes();
         this.layer = ThreadLocal.withInitial(() -> BiomeLayers.create(seed, ((FabricPresetLoader) OTG.getEngine().getPresetLoader()).getPresetGenerationData().get(presetFolderName), OTG.getEngine().getLogger()));
@@ -356,7 +379,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
                                 return DataResult.success(preset.name);
                             }
                     ).fieldOf("preset").stable().forGetter(OTGBiomeProvider.PresetInstance::preset),
-                    RegistryFixedCodec.create(Registry.BIOME_REGISTRY).forGetter(OTGBiomeProvider.PresetInstance::biomes)).apply(
+                    RegistryOps.retrieveRegistry(Registry.BIOME_REGISTRY).forGetter(OTGBiomeProvider.PresetInstance::biomes)).apply(
                     instance,
                     instance.stable(OTGBiomeProvider.PresetInstance::new)
             );
