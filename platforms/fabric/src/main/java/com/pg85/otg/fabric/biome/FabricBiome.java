@@ -108,18 +108,18 @@ public class FabricBiome implements IBiome {
                 RegistryResource registryResource = (RegistryResource)res;
                 GenerationStep.Decoration stage = GenerationStep.Decoration.valueOf(registryResource.getDecorationStage());
                 // This changed from CONFIGURED_FEATURES to PLACED_FEATURE, also registry names changed, so presets will need to be updated.
-                Holder<PlacedFeature> registry = BuiltinRegistries.PLACED_FEATURE.getHolderOrThrow(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(registryResource.getFeatureKey())));
-                if(registry != null)
+                Optional<Holder<PlacedFeature>> registry = BuiltinRegistries.PLACED_FEATURE.getHolder(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(registryResource.getFeatureKey())));
+                if(registry.isPresent())
                 {
-                    biomeGenerationSettingsBuilder.addFeature(stage, registry);
+                    biomeGenerationSettingsBuilder.addFeature(stage, registry.get());
                 } else {
                     String newResourceLocation = LegacyRegistry.convertLegacyResourceLocation(registryResource.getFeatureKey());
                     if (newResourceLocation != null) {
-                        registry = BuiltinRegistries.PLACED_FEATURE.getHolder(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(newResourceLocation))).get();
-                        if (registry == null) {
+                        registry = BuiltinRegistries.PLACED_FEATURE.getHolder(ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(newResourceLocation)));
+                        if (registry.isEmpty()) {
                             OTG.getEngine().getLogger().log(LogLevel.WARN, LogCategory.BIOME_REGISTRY, "Somehow you broke the universe! Feature: " + newResourceLocation + " is not in the registry");
                         } else {
-                            biomeGenerationSettingsBuilder.addFeature(stage, registry);
+                            biomeGenerationSettingsBuilder.addFeature(stage, registry.get());
                         }
                     } else {
                         if(OTG.getEngine().getLogger().getLogCategoryEnabled(LogCategory.DECORATION))
