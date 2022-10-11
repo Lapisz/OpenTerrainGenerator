@@ -5,3 +5,15 @@ accessible      field   net/minecraft/world/level/biome/BiomeGenerationSettings 
 mutable         field   net/minecraft/world/level/biome/BiomeGenerationSettings features Ljava/util/List;
 
 accessible      field   net/minecraft/world/level/levelgen/carver/ConfiguredWorldCarver worldCarver Lnet/minecraft/world/level/levelgen/carver/WorldCarver;
+
+accessible      field   net/minecraft/server/level/WorldGenRegion cache Ljava/util/List;
+mutable         field   net/minecraft/server/level/WorldGenRegion cache Ljava/util/List;
+
+accessible      field   net/minecraft/world/level/chunk/ChunkAccess sections [Lnet/minecraft/world/level/chunk/LevelChunkSection;
+mutable         field   net/minecraft/world/level/chunk/ChunkAccess sections [Lnet/minecraft/world/level/chunk/LevelChunkSection;
+accessible      field   net/minecraft/world/level/chunk/ChunkAccess heightmaps Ljava/util/Map;
+mutable         field   net/minecraft/world/level/chunk/ChunkAccess heightmaps Ljava/util/Map;
+accessible      field   net/minecraft/world/level/chunk/ProtoChunk lights Ljava/util/List;
+mutable         field   net/minecraft/world/level/chunk/ProtoChunk lights Ljava/util/List;
+
+accessible      field   net/minecraft/world/level/StructureFeatureManager level Lnet/minecraft/world/level/LevelAccessor;

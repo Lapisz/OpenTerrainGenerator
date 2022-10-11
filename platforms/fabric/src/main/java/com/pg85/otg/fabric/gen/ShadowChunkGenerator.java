@@ -1,18 +1,14 @@
 package com.pg85.otg.fabric.gen;
 
-import com.pg85.otg.core.OTG;
 import com.pg85.otg.core.gen.OTGChunkGenerator;
 import com.pg85.otg.fabric.biome.OTGBiomeProvider;
 import com.pg85.otg.fabric.materials.FabricMaterialData;
-import com.pg85.otg.fabric.util.ReflectionHelper;
 import com.pg85.otg.interfaces.IBiome;
 import com.pg85.otg.interfaces.ICachedBiomeProvider;
 import com.pg85.otg.util.BlockPos2D;
 import com.pg85.otg.util.ChunkCoordinate;
 import com.pg85.otg.util.FifoMap;
 import com.pg85.otg.util.gen.JigsawStructureData;
-import com.pg85.otg.util.logging.LogCategory;
-import com.pg85.otg.util.logging.LogLevel;
 import com.pg85.otg.util.materials.LocalMaterialData;
 import com.pg85.otg.util.materials.LocalMaterials;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -113,39 +109,31 @@ public class ShadowChunkGenerator {
             synchronized (this.workerLock) {
                 if (this.chunksToLoad.size() == 0) {
                     //OTG.log(LogMarker.INFO, "Fetching chunks for async chunkgen");
-                    //reflection to obtain worldGenRegion.cache and use it in the for loop
-                    try {
-                        List<ChunkAccess> cache =
-                                (List<ChunkAccess>) ReflectionHelper.getField(WorldGenRegion.class, "cache", worldGenRegion);
-
-                        for (ChunkAccess wgrChunk : cache) {
-                            ChunkCoordinate wgrChunkCoord = ChunkCoordinate.fromChunkCoords(wgrChunk.getPos().x, wgrChunk.getPos().z);
-                            if (wgrChunk != chunk && !wgrChunk.getStatus().isOrAfter(ChunkStatus.NOISE)) {
-                                if (!this.unloadedChunksCache.containsKey(wgrChunkCoord)) {
-                                    boolean bFound = false;
-                                    for (int i = 0; i < this.chunksBeingLoaded.length; i++) {
-                                        if (this.chunksBeingLoaded[i] == wgrChunkCoord) {
-                                            bFound = true;
-                                            break;
-                                        }
+                    for (ChunkAccess wgrChunk : worldGenRegion.cache) {
+                        ChunkCoordinate wgrChunkCoord = ChunkCoordinate.fromChunkCoords(wgrChunk.getPos().x, wgrChunk.getPos().z);
+                        if (wgrChunk != chunk && !wgrChunk.getStatus().isOrAfter(ChunkStatus.NOISE)) {
+                            if (!this.unloadedChunksCache.containsKey(wgrChunkCoord)) {
+                                boolean bFound = false;
+                                for (int i = 0; i < this.chunksBeingLoaded.length; i++) {
+                                    if (this.chunksBeingLoaded[i] == wgrChunkCoord) {
+                                        bFound = true;
+                                        break;
                                     }
-                                    if (!bFound) {
-                                        // TODO: Queue order shouldn't really matter bc
-                                        // of the way maxQueueSize is enforced here.
-                                        // Might affect cache hits/misses and waits tho, test?
-                                        this.chunksToLoad.addFirst(wgrChunkCoord);
-                                        if (this.chunksToLoad.size() == this.maxQueueSize) {
-                                            break;
-                                        }
+                                }
+                                if (!bFound) {
+                                    // TODO: Queue order shouldn't really matter bc
+                                    // of the way maxQueueSize is enforced here.
+                                    // Might affect cache hits/misses and waits tho, test?
+                                    this.chunksToLoad.addFirst(wgrChunkCoord);
+                                    if (this.chunksToLoad.size() == this.maxQueueSize) {
+                                        break;
                                     }
                                 }
                             }
                         }
-                        ;
-
-                    } catch (NoSuchFieldException | IllegalAccessException e) {
-                        OTG.getEngine().getLogger().log(LogLevel.ERROR, LogCategory.MAIN, "Error getting worldGenRegion.cache via reflection");
                     }
+                    ;
+
                 }
             }
         }
@@ -233,8 +221,6 @@ public class ShadowChunkGenerator {
     }
 
     public void fillWorldGenChunkFromShadowChunk(ChunkAccess chunk, ChunkAccess cachedChunk) {
-        // TODO: rewrite this. with reflection it gets really messy and near impossible with heightmap being final (maybe instrumentation?)
-        /*
         ChunkCoordinate chunkCoord = ChunkCoordinate.fromChunkCoords(chunk.getPos().x, chunk.getPos().z);
         // Re-use base terrain generated via shadowgen for worldgen.
         ((ProtoChunk)chunk).sections = ((ProtoChunk)cachedChunk).sections;
@@ -246,7 +232,7 @@ public class ShadowChunkGenerator {
         {
             this.unloadedChunksCache.remove(chunkCoord);
         }
-         */
+
     }
 
     public void setChunkGenerated(ChunkCoordinate chunkCoord) {
@@ -409,7 +395,7 @@ public class ShadowChunkGenerator {
 
                 }));
 
-                if(retur.get() == true) {
+                if (retur.get() == true) {
                     return true;
                 }
 

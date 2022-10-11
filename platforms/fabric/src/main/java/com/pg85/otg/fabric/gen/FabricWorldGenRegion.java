@@ -62,6 +62,8 @@ public class FabricWorldGenRegion extends LocalWorldGenRegion {
         super(presetFolderName, OTG.getEngine().getPluginConfig(), worldConfig, OTG.getEngine().getLogger(), worldGenRegion.getCenter().x, worldGenRegion.getCenter().z, chunkGenerator.getCachedBiomeProvider());
         this.worldGenRegion = worldGenRegion;
         this.chunkGenerator = chunkGenerator;
+        this.maxY = worldConfig.getWorldMaxY();
+        this.minY = worldConfig.getWorldMinY();
     }
 
     /**

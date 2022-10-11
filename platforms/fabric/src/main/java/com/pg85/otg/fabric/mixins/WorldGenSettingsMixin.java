@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair;
 import com.pg85.otg.constants.Constants;
 import com.pg85.otg.core.OTG;
 import com.pg85.otg.fabric.biome.OTGBiomeProvider;
+import com.pg85.otg.fabric.dimensions.OTGDimensionTypeHelper;
 import com.pg85.otg.fabric.gen.OTGNoiseChunkGenerator;
 import com.pg85.otg.interfaces.IWorldConfig;
 import com.pg85.otg.util.logging.LogCategory;
@@ -66,50 +67,7 @@ public abstract class WorldGenSettingsMixin {
             Registry<LevelStem> levelStemRegistry = DimensionType.defaultDimensions(ra, seed);
 
             NoiseSettings noiseSettings = getNoiseSettings(OTG.getEngine().getPresetLoader().getPresetByShortNameOrFolderName("Default").getWorldConfig());
-            cir.setReturnValue(new WorldGenSettings(
-                    seed, //seed
-                    wgp.generateStructures(), //generate structures
-                    false, //generate bonus chest
-                    WorldGenSettings.withOverworld(
-                            dimensionTypeRegistry,
-                            levelStemRegistry,
-                            new OTGNoiseChunkGenerator(
-                                    new OTGBiomeProvider(
-                                            OTG.getEngine().getPresetLoader().getDefaultPresetFolderName(),
-                                            new Climate.ParameterList<>(
-                                                    ImmutableList.of(
-                                                            Pair.of(Climate.parameters(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-                                                                return biomeRegistry.getOrThrow(Biomes.PLAINS);
-                                                            })
-                                                    )
-                                            ),
-                                            Optional.of(new OTGBiomeProvider.PresetInstance(
-                                                    OTG.getEngine().getPresetLoader().getDefaultPresetFolderName(),
-                                                    OTGBiomeProvider.Preset.DEFAULT,
-                                                    biomeRegistry
-                                            ))
-                                    ),
-                                    seed,
-                                    structureSetRegistry,
-                                    ra.registryOrThrow(Registry.NOISE_REGISTRY),
-                                    Holder.direct(new NoiseGeneratorSettings(noiseSettings, Blocks.STONE.defaultBlockState(), Blocks.WATER.defaultBlockState(), getNoiseRouter(noiseSettings), SurfaceRuleData.overworld(), 63, false, true, true, false))
-                            )
-
-
-                            //from paper's OTGPlugin injection
-                            //new OTGNoiseChunkGenerator(
-                            //        OTGGen.getPreset().getFolderName(),
-                            //        null,
-                            //        new OTGBiomeProvider(OTGGen.getPreset().getFolderName(), world.getSeed(), false, false, ra.registryOrThrow(Registry.BIOME_REGISTRY)),
-                            //       ra.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY),
-                            //        ra.registryOrThrow(Registry.NOISE_REGISTRY),
-                            //        world.getSeed(),
-                            //        Holder.direct(new NoiseGeneratorSettings(noiseSettings, Blocks.STONE.defaultBlockState(), Blocks.WATER.defaultBlockState(), getNoiseRouter(noiseSettings), SurfaceRuleData.overworld(), 63, false, true, true, false))
-                            //);
-                    )
-
-            ));
-
+            cir.setReturnValue(OTGDimensionTypeHelper.createOTGSettings(ra, seed, true, false, "Default"));
 
         }
     }
