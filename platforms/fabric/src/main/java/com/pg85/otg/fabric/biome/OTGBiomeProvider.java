@@ -186,7 +186,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
         // Fill the featureOrder list to establish the allowed order of PlacedFeatures per biome
 
         // For each feature, find all dependencies (other features that are listed before it)
-        biomes.stream().filter(a -> !BuiltinRegistries.BIOME.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
+        biomes.stream().filter(a -> !registry.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
             biome.getGenerationSettings().features().stream().forEach(listForDecorationStep -> {
                 for(int i = listForDecorationStep.size() - 1; i >= 0; i--)
                 {
@@ -236,7 +236,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
         // Now index any features added only to OTG biomes, we'll reorder these so will ignore order.
 
         // For each feature, find all the other features that are listed before it
-        biomes.stream().filter(a -> BuiltinRegistries.BIOME.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
+        biomes.stream().filter(a -> registry.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
             biome.getGenerationSettings().features().stream().forEach(listForDecorationStep -> {
                 for(int i = listForDecorationStep.size() - 1; i >= 0; i--)
                 {
@@ -252,7 +252,7 @@ public class OTGBiomeProvider extends BiomeSource implements ILayerSource {
         });
 
         // For OTG biomes, reorder PlacedFeatures so MC doesn't blow up.
-        biomes.stream().filter(a -> BuiltinRegistries.BIOME.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
+        biomes.stream().filter(a -> registry.getKey(a).getNamespace().equals(com.pg85.otg.constants.Constants.MOD_ID_SHORT)).forEach(biome -> {
             //do the below for all OTG biomes
 
             List<HolderSet<PlacedFeature>> orderedFeatures = new ArrayList<>();

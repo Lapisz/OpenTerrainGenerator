@@ -18,19 +18,18 @@ public class FabricLogger extends Logger {
             return;
         }
 
-        // TODO: in testing, ensure logger is in right format (no duplicate mod prefix)
         switch(level) {
             case FATAL:
-                this.logger.fatal(category.getLogTag() + " " + message);
+                this.logger.fatal("[" + Constants.MOD_ID + "] " + category.getLogTag() + " " + message);
                 break;
             case ERROR:
-                this.logger.error(category.getLogTag() + " " + message);
+                this.logger.error("[" + Constants.MOD_ID + "] " + category.getLogTag() + " " + message);
                 break;
             case WARN:
-                this.logger.warn(category.getLogTag() + " " + message);
+                this.logger.warn("[" + Constants.MOD_ID + "] " + category.getLogTag() + " " + message);
                 break;
             case INFO:
-                this.logger.info(category.getLogTag() + " " + message);
+                this.logger.info("[" + Constants.MOD_ID + "] " + category.getLogTag() + " " + message);
                 break;
             default:
                 break;
