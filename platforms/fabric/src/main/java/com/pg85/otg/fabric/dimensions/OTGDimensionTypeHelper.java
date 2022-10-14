@@ -300,10 +300,14 @@ public class OTGDimensionTypeHelper
                 new ResourceLocation(worldConfig.getEffectsLocation()),
                 worldConfig.getAmbientLight()
         );
+
+        //unfreeze registry and then refreeze registry after the statements
+        ((MappedRegistry) dimensionTypeRegistry).frozen = false;
         dimensionTypeRegistry.registerOrOverride(OptionalInt.empty(), dimTypeRegistryKey, otgOverWorld, Lifecycle.stable());
 
         LevelStem dimension = dimensions.get(dimRegistryKey);
         dimensions.register(dimRegistryKey, new LevelStem(dimension == null ? dimensionTypeRegistry.getHolderOrThrow(dimTypeRegistryKey) : dimension.typeHolder(), chunkGenerator), Lifecycle.stable());
+        ((MappedRegistry) dimensionTypeRegistry).frozen = true;
     }
 
     // Writes OTG DimensionTypes to world save folder as datapack json files so they're picked up on world load.

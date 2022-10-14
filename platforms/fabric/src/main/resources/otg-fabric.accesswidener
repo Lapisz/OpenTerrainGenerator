@@ -17,3 +17,5 @@ accessible      field   net/minecraft/world/level/chunk/ProtoChunk lights Ljava/
 mutable         field   net/minecraft/world/level/chunk/ProtoChunk lights Ljava/util/List;
 
 accessible      field   net/minecraft/world/level/StructureFeatureManager level Lnet/minecraft/world/level/LevelAccessor;
+
+accessible      field   net/minecraft/core/MappedRegistry frozen Z
