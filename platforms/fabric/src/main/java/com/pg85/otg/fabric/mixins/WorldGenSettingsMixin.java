@@ -61,54 +61,9 @@ public abstract class WorldGenSettingsMixin {
                 seed = parsedInputtedSeed.getAsLong(); //otherwise use the inputted seed
             }
 
-            Registry<DimensionType> dimensionTypeRegistry = ra.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
-            Registry<Biome> biomeRegistry = ra.registryOrThrow(Registry.BIOME_REGISTRY);
-            Registry<StructureSet> structureSetRegistry = ra.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
-            Registry<LevelStem> levelStemRegistry = DimensionType.defaultDimensions(ra, seed);
-
-            NoiseSettings noiseSettings = getNoiseSettings(OTG.getEngine().getPresetLoader().getPresetByShortNameOrFolderName("Default").getWorldConfig());
             cir.setReturnValue(OTGDimensionTypeHelper.createOTGSettings(ra, seed, true, false, "Default"));
 
         }
-    }
-
-    // Taken from vanilla NoiseRouterData::overworldWithoutCaves
-    private static NoiseRouterWithOnlyNoises getNoiseRouter(NoiseSettings noiseSettings) {
-        DensityFunction shiftX = getFunction("shift_x");
-        DensityFunction shiftZ = getFunction("shift_z");
-        return new NoiseRouterWithOnlyNoises(
-                DensityFunctions.zero(),
-                DensityFunctions.zero(),
-                DensityFunctions.zero(),
-                DensityFunctions.zero(),
-                DensityFunctions.shiftedNoise2d(shiftX, shiftZ, 0.25, BuiltinRegistries.NOISE.getHolderOrThrow(Noises.TEMPERATURE)),
-                DensityFunctions.shiftedNoise2d(shiftX, shiftZ, 0.25, BuiltinRegistries.NOISE.getHolderOrThrow(Noises.VEGETATION)),
-                getFunction("overworld/continents"),
-                getFunction("overworld/erosion"),
-                getFunction("overworld/depth"),
-                getFunction("overworld/ridges"),
-                DensityFunctions.mul(DensityFunctions.constant(4.0D), DensityFunctions.mul(getFunction("overworld/depth"), DensityFunctions.cache2d(getFunction("overworld/factor"))).quarterNegative()),
-                DensityFunctions.mul(DensityFunctions.interpolated(DensityFunctions.blendDensity(DensityFunctions.slide(noiseSettings, getFunction("overworld/sloped_cheese")))), DensityFunctions.constant(0.64D)).squeeze(),
-                DensityFunctions.zero(),
-                DensityFunctions.zero(),
-                DensityFunctions.zero()
-        );
-    }
-
-    private static DensityFunction getFunction(String string) {
-        return BuiltinRegistries.DENSITY_FUNCTION.getHolderOrThrow(ResourceKey.create(Registry.DENSITY_FUNCTION_REGISTRY, new ResourceLocation(string))).value();
-    }
-
-    private static NoiseSettings getNoiseSettings(IWorldConfig worldConfig) {
-        return NoiseSettings.create(
-                worldConfig.getWorldMinY(),
-                worldConfig.getWorldHeight(),
-                new NoiseSamplingSettings(1.0D, 1.0D, 80.0D, 160.0D),
-                new NoiseSlider(-0.078125D, 2, 8),
-                new NoiseSlider(0.1171875D, 3, 0),
-                1,
-                2,
-                TerrainProvider.overworld(false));
     }
 
 }

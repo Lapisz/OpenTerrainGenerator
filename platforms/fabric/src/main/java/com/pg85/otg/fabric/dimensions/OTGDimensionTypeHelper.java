@@ -177,11 +177,12 @@ public class OTGDimensionTypeHelper
         {
             ChunkGenerator chunkGenerator = new OTGNoiseChunkGenerator(
                     dimConfig.Overworld.PresetFolderName,
-                    dimConfigName,
                     new OTGBiomeProvider(
                             dimConfig.Overworld.PresetFolderName,
-                            paramList,
-                            Optional.of(new OTGBiomeProvider.PresetInstance(dimConfig.Overworld.PresetFolderName, OTGBiomeProvider.Preset.DEFAULT, biomesRegistry))
+                            seed,
+                            false,
+                            false,
+                            biomesRegistry
                     ),
                     structureSetRegistry,
                     noiseParamsRegistry,
@@ -195,11 +196,12 @@ public class OTGDimensionTypeHelper
             long dimSeed = dimConfig.Nether.Seed != -1l ? dimConfig.Nether.Seed : new Random().nextLong();
             ChunkGenerator chunkGenerator = new OTGNoiseChunkGenerator(
                     dimConfig.Nether.PresetFolderName,
-                    dimConfigName,
                     new OTGBiomeProvider(
                             dimConfig.Nether.PresetFolderName,
-                            paramList,
-                            Optional.of(new OTGBiomeProvider.PresetInstance(dimConfig.Nether.PresetFolderName, OTGBiomeProvider.Preset.DEFAULT, biomesRegistry))
+                            seed,
+                            false,
+                            false,
+                            biomesRegistry
                     ),
                     structureSetRegistry,
                     noiseParamsRegistry,
@@ -213,11 +215,12 @@ public class OTGDimensionTypeHelper
             long dimSeed = dimConfig.End.Seed != -1l ? dimConfig.End.Seed : new Random().nextLong();
             ChunkGenerator chunkGenerator = new OTGNoiseChunkGenerator(
                     dimConfig.End.PresetFolderName,
-                    dimConfigName,
                     new OTGBiomeProvider(
                             dimConfig.End.PresetFolderName,
-                            paramList,
-                            Optional.of(new OTGBiomeProvider.PresetInstance(dimConfig.Nether.PresetFolderName, OTGBiomeProvider.Preset.DEFAULT, biomesRegistry))
+                            seed,
+                            false,
+                            false,
+                            biomesRegistry
                     ),
                     structureSetRegistry,
                     noiseParamsRegistry,
@@ -235,11 +238,12 @@ public class OTGDimensionTypeHelper
                     long dimSeed = otgDim.Seed != -1l ? otgDim.Seed : new Random().nextLong();
                     ChunkGenerator chunkGenerator = new OTGNoiseChunkGenerator(
                             otgDim.PresetFolderName,
-                            dimConfigName,
                             new OTGBiomeProvider(
                                     otgDim.PresetFolderName,
-                                    paramList,
-                                    Optional.of(new OTGBiomeProvider.PresetInstance(otgDim.PresetFolderName, OTGBiomeProvider.Preset.DEFAULT, biomesRegistry))
+                                    seed,
+                                    false,
+                                    false,
+                                    biomesRegistry
                             ),
                             structureSetRegistry,
                             noiseParamsRegistry,

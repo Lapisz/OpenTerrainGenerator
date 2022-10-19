@@ -1,5 +1,5 @@
 accessWidener   v1      named
-accessible      class   net/minecraft/world/level/levelgen/WorldGenSettings
+
 
 accessible      field   net/minecraft/world/level/biome/BiomeGenerationSettings features Ljava/util/List;
 mutable         field   net/minecraft/world/level/biome/BiomeGenerationSettings features Ljava/util/List;
@@ -8,6 +8,14 @@ accessible      field   net/minecraft/world/level/levelgen/carver/ConfiguredWorl
 
 accessible      field   net/minecraft/server/level/WorldGenRegion cache Ljava/util/List;
 mutable         field   net/minecraft/server/level/WorldGenRegion cache Ljava/util/List;
+
+
+
+# Post-paper rebase
+accessible      class   net/minecraft/world/level/levelgen/WorldGenSettings
+
+accessible      method  net/minecraft/world/level/biome/Biome getTemperature (Lnet/minecraft/core/BlockPos;)F
+accessible      method  net/minecraft/world/entity/Entity setRot (FF)V
 
 accessible      field   net/minecraft/world/level/chunk/ChunkAccess sections [Lnet/minecraft/world/level/chunk/LevelChunkSection;
 mutable         field   net/minecraft/world/level/chunk/ChunkAccess sections [Lnet/minecraft/world/level/chunk/LevelChunkSection;
@@ -19,3 +27,4 @@ mutable         field   net/minecraft/world/level/chunk/ProtoChunk lights Ljava/
 accessible      field   net/minecraft/world/level/StructureFeatureManager level Lnet/minecraft/world/level/LevelAccessor;
 
 accessible      field   net/minecraft/core/MappedRegistry frozen Z
+

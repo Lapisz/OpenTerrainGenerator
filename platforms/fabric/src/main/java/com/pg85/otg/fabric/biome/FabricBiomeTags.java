@@ -1,4 +1,4 @@
-package com.pg85.otg.fabric.util;
+package com.pg85.otg.fabric.biome;
 
 import com.pg85.otg.constants.Constants;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;

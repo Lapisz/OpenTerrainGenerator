@@ -8,13 +8,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ProtoChunk;
 
 public class FabricChunkBuffer extends ChunkBuffer {
     private final BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-    private final ProtoChunk chunk;
+    private final ChunkAccess chunk;
 
-    FabricChunkBuffer(ProtoChunk chunk)
+    FabricChunkBuffer(ChunkAccess chunk)
     {
         this.chunk = chunk;
     }
@@ -36,7 +35,7 @@ public class FabricChunkBuffer extends ChunkBuffer {
     public LocalMaterialData getBlock(int internalX, int blockY, int internalZ)
     {
         BlockState blockState = this.chunk.getBlockState(this.mutable.set(internalX, blockY, internalZ));
-        return blockState == null ? null : FabricMaterialData.ofBlockState(blockState);
+        return blockState == null ? null : FabricMaterialData.ofBlockData(blockState);
     }
 
     public ChunkAccess getChunk()

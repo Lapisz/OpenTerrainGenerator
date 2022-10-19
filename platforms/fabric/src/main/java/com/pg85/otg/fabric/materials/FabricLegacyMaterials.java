@@ -4,29 +4,51 @@ import com.pg85.otg.core.OTG;
 import com.pg85.otg.util.logging.LogCategory;
 import com.pg85.otg.util.logging.LogLevel;
 import com.pg85.otg.util.minecraft.BlockNames;
+
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.datafix.fixes.ItemStackTheFlatteningFix;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.piston.PistonHeadBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.ComparatorMode;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.PistonType;
+import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.StructureMode;
 
-// Converts any (1.12.2 or lower) legacy block names/ids + data to the new (1.16) format.
-// TODO: Can probably use some method to convert data to the new format, don't do it all manually?
-// ^ At least this way we have full control and can accommodate for any legacy OTG names/data/aliases etc.
-
-// Block.getStateById() says //Forge: Do not use, use GameRegistry. GameRegistry doesn't appear to provide what we need though(?)
-// TODO: Convert the above to fabric
-public class FabricLegacyMaterials {
-    // TODO: Don't need any names here that match 1.16's
-    static BlockState fromLegacyBlockName(String oldBlockName) {
-        switch (oldBlockName) {
+public class FabricLegacyMaterials
+{
+    static BlockState fromLegacyBlockName (String oldBlockName)
+    {
+        if (oldBlockName.matches("minecraft:[A-Za-z]+:[0-9]+")) {
+            int stateId = Integer.parseInt(oldBlockName.split(":")[2]);
+            return fromLegacyBlockNameOrIdWithData(oldBlockName.split(":")[1], stateId);
+        }
+        switch (oldBlockName)
+        {
+            // TODO: These minecraft:xxx blocks no longer exist, so cannot be parsed by mc.
+            // We should parse them here, but atm we're not falling back to legacy parsing
+            // for those blocks. Should make that work, and also handle minecraft:xxx:data.
 			/*
 			case "minecraft:silver_shulker_box":
 				return Blocks.LIGHT_GRAY_SHULKER_BOX.defaultBlockState();
 			case "minecraft:silver_glazed_terracotta":
 				return Blocks.LIGHT_GRAY_GLAZED_TERRACOTTA.defaultBlockState();
 			*/
+
+            // TODO: This needs to be added to the other platforms when they get to 1.17 -auth
+            case "grass_path":
+                return Blocks.DIRT_PATH.defaultBlockState();
+
+
             case "stationary_water":
             case "flowing_water":
                 return Blocks.WATER.defaultBlockState();
@@ -80,6 +102,11 @@ public class FabricLegacyMaterials {
             case "cobblestone_stairs":
             case "stone_stairs":
                 return Blocks.COBBLESTONE_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
+            case "stone_brick_stairs":
+            case "smooth_stairs":
+                return Blocks.STONE_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
+            case "brick_stairs":
+                return Blocks.BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
             case "nether_brick_stairs":
                 return Blocks.NETHER_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
             case "sandstone_stairs":
@@ -94,18 +121,19 @@ public class FabricLegacyMaterials {
                 return Blocks.RED_SANDSTONE_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
             case "purpur_stairs":
                 return Blocks.PURPUR_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
-            case "brick_stairs":
-                return Blocks.BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
-            case "stone_brick_stairs":
-            case "smooth_stairs":
-                return Blocks.STONE_BRICK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST);
-
+            case "wooden_button":
+            case "wood_button":
+                return Blocks.OAK_BUTTON.defaultBlockState().setValue(WoodButtonBlock.FACING, Direction.NORTH);
+            case "waterlily":
+                return Blocks.LILY_PAD.defaultBlockState();
             case "quartz_ore":
                 return Blocks.NETHER_QUARTZ_ORE.defaultBlockState();
             case "yellow_flower":
                 return Blocks.DANDELION.defaultBlockState();
             case "web":
                 return Blocks.COBWEB.defaultBlockState();
+            case "standing_banner":
+                return Blocks.WHITE_BANNER.defaultBlockState();
             case "wall_banner":
                 return Blocks.WHITE_WALL_BANNER.defaultBlockState();
             case "redstone_lamp_on":
@@ -114,11 +142,6 @@ public class FabricLegacyMaterials {
                 return Blocks.REDSTONE_LAMP.defaultBlockState().setValue(RedstoneLampBlock.LIT, false);
             case "wool":
                 return Blocks.WHITE_WOOL.defaultBlockState();
-            case "wooden_button":
-            case "wood_button":
-                return Blocks.OAK_BUTTON.defaultBlockState();
-            case "waterlily":
-                return Blocks.LILY_PAD.defaultBlockState();
             case "log":
             case "wood":
                 return Blocks.OAK_LOG.defaultBlockState();
@@ -139,7 +162,9 @@ public class FabricLegacyMaterials {
             case "mob_spawner":
                 return Blocks.INFESTED_STONE.defaultBlockState();
             case "double_step":
-                return Blocks.SMOOTH_STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+                return Registry.BLOCK.get(new ResourceLocation("minecraft:smooth_stone_slab"))
+                        .defaultBlockState().setValue(SlabBlock.TYPE,
+                                SlabType.DOUBLE);
             case "smooth_brick":
                 return Blocks.STONE_BRICKS.defaultBlockState();
             case "rails":
@@ -203,144 +228,53 @@ public class FabricLegacyMaterials {
         }
     }
 
-    static BlockState fromLegacyBlockNameOrIdWithData(String blockName, int data) {
-        if (blockName == null || blockName.trim().isEmpty()) {
+    static BlockState fromLegacyBlockNameOrIdWithData (String blockName, int data)
+    {
+        if (blockName == null || blockName.trim().isEmpty())
+        {
             return null;
         }
 
-        try {
+        try
+        {
             int blockId = Integer.parseInt(blockName);
             blockName = BlockNames.blockNameFromLegacyBlockId(blockId);
-            if (blockName == null) {
+            if (blockName == null)
+            {
                 return null;
             }
-        } catch (NumberFormatException ignored) {
         }
+        catch (NumberFormatException ignored) { }
 
-        try {
-            switch (blockName) {
+        try
+        {
+            switch (blockName)
+            {
                 // Support "GRASS:0" here, or it will be misinterpreted as the new grass (plant)
                 case "grass":
-                    if (data == 0) {
+                    if (data == 0)
+                    {
                         return Blocks.GRASS_BLOCK.defaultBlockState();
                     }
 
                     // Legacy blocks with block data that are now their own block
                 case "banner":
                 case "white_banner":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.BLACK_BANNER.defaultBlockState();
-                        case 1:
-                            return Blocks.RED_BANNER.defaultBlockState();
-                        case 2:
-                            return Blocks.GREEN_BANNER.defaultBlockState();
-                        case 3:
-                            return Blocks.BROWN_BANNER.defaultBlockState();
-                        case 4:
-                            return Blocks.BLUE_BANNER.defaultBlockState();
-                        case 5:
-                            return Blocks.PURPLE_BANNER.defaultBlockState();
-                        case 6:
-                            return Blocks.CYAN_BANNER.defaultBlockState();
-                        case 7:
-                            return Blocks.LIGHT_GRAY_BANNER.defaultBlockState();
-                        case 8:
-                            return Blocks.GRAY_BANNER.defaultBlockState();
-                        case 9:
-                            return Blocks.PINK_BANNER.defaultBlockState();
-                        case 10:
-                            return Blocks.LIME_BANNER.defaultBlockState();
-                        case 11:
-                            return Blocks.YELLOW_BANNER.defaultBlockState();
-                        case 12:
-                            return Blocks.LIGHT_BLUE_BANNER.defaultBlockState();
-                        case 13:
-                            return Blocks.MAGENTA_BANNER.defaultBlockState();
-                        case 14:
-                            return Blocks.ORANGE_BANNER.defaultBlockState();
-                        case 15:
-                            return Blocks.WHITE_BANNER.defaultBlockState();
-                    }
-                    // TODO: How does facing for bed blocks in bo's work for 1.12.2, can only specify color via data?
+                    return Registry.BLOCK.get(getFlatKey("minecraft:banner", data)).defaultBlockState();
+
+                // TODO: How does facing for bed blocks in bo's work for 1.12.2, can only specify color via data?
                 case "bed":
                 case "white_bed":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_BED.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_BED.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_BED.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_BED.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_BED.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_BED.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_BED.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_BED.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_BED.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_BED.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_BED.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_BED.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_BED.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_BED.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_BED.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_BED.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:bed", data)).defaultBlockState();
+
                 case "carpet":
                 case "white_carpet":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_CARPET.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_CARPET.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_CARPET.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_CARPET.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_CARPET.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_CARPET.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_CARPET.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_CARPET.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_CARPET.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_CARPET.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_CARPET.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_CARPET.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_CARPET.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_CARPET.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_CARPET.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_CARPET.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:carpet", data)).defaultBlockState();
+
                 case "cobblestone_wall":
                 case "cobble_wall":
-                    switch (data) {
+                    switch (data)
+                    {
                         case 0:
                         default:
                             return Blocks.COBBLESTONE_WALL.defaultBlockState();
@@ -349,275 +283,76 @@ public class FabricLegacyMaterials {
                     }
                 case "concrete":
                 case "white_concrete":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_CONCRETE.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_CONCRETE.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_CONCRETE.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_CONCRETE.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_CONCRETE.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_CONCRETE.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_CONCRETE.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_CONCRETE.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_CONCRETE.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_CONCRETE.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_CONCRETE.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_CONCRETE.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_CONCRETE.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_CONCRETE.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_CONCRETE.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_CONCRETE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:concrete", data)).defaultBlockState();
+
                 case "concrete_powder":
                 case "white_concrete_powder":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_CONCRETE_POWDER.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_CONCRETE_POWDER.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_CONCRETE_POWDER.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_CONCRETE_POWDER.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_CONCRETE_POWDER.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_CONCRETE_POWDER.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_CONCRETE_POWDER.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_CONCRETE_POWDER.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_CONCRETE_POWDER.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_CONCRETE_POWDER.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_CONCRETE_POWDER.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_CONCRETE_POWDER.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_CONCRETE_POWDER.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_CONCRETE_POWDER.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_CONCRETE_POWDER.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_CONCRETE_POWDER.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:concrete_powder", data)).defaultBlockState();
+
                 case "dirt":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.DIRT.defaultBlockState();
-                        case 1:
-                            return Blocks.COARSE_DIRT.defaultBlockState();
-                        case 2:
-                            return Blocks.PODZOL.defaultBlockState();
-                    }
-                    // TODO: This only spawns the bottom half?
+                    return Registry.BLOCK.get(getFlatKey("minecraft:dirt", data)).defaultBlockState();
+
+                // TODO: This only spawns the bottom half?
                 case "double_plant":
                 case "sunflower":
                 case "rose_bush":
                 case "tall_grass":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.SUNFLOWER.defaultBlockState();
-                        case 1:
-                            return Blocks.LILAC.defaultBlockState();
-                        case 2:
-                            return Blocks.TALL_GRASS.defaultBlockState();
-                        case 3:
-                            return Blocks.LARGE_FERN.defaultBlockState();
-                        case 4:
-                            return Blocks.ROSE_BUSH.defaultBlockState();
-                        case 5:
-                            return Blocks.PEONY.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:double_plant", data)).defaultBlockState();
+
                 case "double_stone_slab":
                 case "smooth_stone":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 1:
-                            return Blocks.SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        //case 2:
-                        case 3:
-                            return Blocks.COBBLESTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 4:
-                            return Blocks.BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 5:
-                            return Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 6:
-                            return Blocks.NETHER_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 7:
-                            return Blocks.QUARTZ_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                    }
-                    // TODO: Did this even exist for 1.12.2?
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stone_slab", data))
+                            .defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+
+                // TODO: Did this even exist for 1.12.2?
                 case "double_wooden_slab":
                 case "wood_double_step":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 1:
-                            return Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 2:
-                            return Blocks.BIRCH_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 3:
-                            return Blocks.JUNGLE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 4:
-                            return Blocks.ACACIA_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 5:
-                            return Blocks.DARK_OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:wooden_slab", data))
+                            .defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+
                 case "leaves":
                 case "oak_leaves":
-                    switch (data) {
-                        case 0:
-                        case 4:
-                        case 8:
-                        case 12:
-                        default:
-                            return Blocks.OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                        case 1:
-                        case 5:
-                        case 9:
-                        case 13:
-                            return Blocks.SPRUCE_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                        case 2:
-                        case 6:
-                        case 10:
-                        case 14:
-                            return Blocks.BIRCH_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                        case 3:
-                        case 7:
-                        case 11:
-                        case 15:
-                            return Blocks.JUNGLE_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:leaves", data % 4))
+                            .defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
+
                 case "leaves2":
                 case "leaves_2":
                 case "acacia_leaves":
-                    switch (data) {
-                        case 0:
-                        case 4:
-                        case 8:
-                        case 12:
-                        default:
-                            return Blocks.ACACIA_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                        case 1:
-                        case 5:
-                        case 9:
-                        case 13:
-                            return Blocks.DARK_OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:leaves2", data % 4)).defaultBlockState();
+
                 case "monster_egg":
                 case "monster_eggs":
                 case "infested_stone":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.INFESTED_STONE.defaultBlockState();
-                        case 1:
-                            return Blocks.INFESTED_COBBLESTONE.defaultBlockState();
-                        case 2:
-                            return Blocks.INFESTED_STONE_BRICKS.defaultBlockState();
-                        case 3:
-                            return Blocks.INFESTED_MOSSY_STONE_BRICKS.defaultBlockState();
-                        case 4:
-                            return Blocks.INFESTED_CRACKED_STONE_BRICKS.defaultBlockState();
-                        case 5:
-                            return Blocks.INFESTED_CHISELED_STONE_BRICKS.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:monster_egg", data)).defaultBlockState();
+
                 case "planks":
                 case "wood":
                 case "oak_planks":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.OAK_PLANKS.defaultBlockState();
-                        case 1:
-                            return Blocks.SPRUCE_PLANKS.defaultBlockState();
-                        case 2:
-                            return Blocks.BIRCH_PLANKS.defaultBlockState();
-                        case 3:
-                            return Blocks.JUNGLE_PLANKS.defaultBlockState();
-                        case 4:
-                            return Blocks.ACACIA_PLANKS.defaultBlockState();
-                        case 5:
-                            return Blocks.DARK_OAK_PLANKS.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:planks", data)).defaultBlockState();
+
                 case "prismarine":
-                    switch (data) {
-                        // TODO: Docs contradict each other about whether 2 or 3 is bricks/dark, test this.
-                        case 0:
-                        default:
-                            return Blocks.PRISMARINE.defaultBlockState();
-                        case 1:
-                            return Blocks.PRISMARINE_BRICKS.defaultBlockState();
-                        case 2:
-                            return Blocks.DARK_PRISMARINE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:prismarine", data)).defaultBlockState();
+
                 case "purpur_slab":
                     return Blocks.PURPUR_SLAB.defaultBlockState()
-                            .setValue(SlabBlock.TYPE, data == 0 ? SlabType.BOTTOM : data == 8 ? SlabType.TOP : SlabType.BOTTOM);
+                            .setValue(SlabBlock.TYPE,
+                                    data == 0 ? SlabType.BOTTOM :
+                                            data == 8 ? SlabType.TOP : SlabType.BOTTOM);
                 case "purpur_double_slab":
-                    return Blocks.PURPUR_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+                    return Blocks.PURPUR_SLAB.defaultBlockState()
+                            .setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+
                 case "red_flower":
                 case "red_rose":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.POPPY.defaultBlockState();
-                        case 1:
-                            return Blocks.BLUE_ORCHID.defaultBlockState();
-                        case 2:
-                            return Blocks.ALLIUM.defaultBlockState();
-                        case 3:
-                            return Blocks.AZURE_BLUET.defaultBlockState();
-                        case 4:
-                            return Blocks.RED_TULIP.defaultBlockState();
-                        case 5:
-                            return Blocks.ORANGE_TULIP.defaultBlockState();
-                        case 6:
-                            return Blocks.WHITE_TULIP.defaultBlockState();
-                        case 7:
-                            return Blocks.PINK_TULIP.defaultBlockState();
-                        case 8:
-                            return Blocks.OXEYE_DAISY.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:red_flower", data)).defaultBlockState();
+
                 case "red_sandstone":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.RED_SANDSTONE.defaultBlockState();
-                        case 1:
-                            return Blocks.CHISELED_RED_SANDSTONE.defaultBlockState();
-                        case 2:
-                            return Blocks.SMOOTH_RED_SANDSTONE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:red_sandstone", data)).defaultBlockState();
+
                 case "red_sandstone_slab":
                 case "stone_slab2":
-                    switch (data) {
+                    switch (data)
+                    {
                         case 0:
                         default:
                             return Blocks.RED_SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
@@ -627,46 +362,30 @@ public class FabricLegacyMaterials {
                 case "double_red_sandstone_slab":
                 case "double_stone_slab2":
                     return Blocks.RED_SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+
                 case "sand":
-                    switch (data) {
+                    switch (data)
+                    {
                         case 0:
                         default:
                             return Blocks.SAND.defaultBlockState();
                         case 1:
                             return Blocks.RED_SAND.defaultBlockState();
                     }
+
                 case "sandstone":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.SANDSTONE.defaultBlockState();
-                        case 1:
-                            return Blocks.CHISELED_SANDSTONE.defaultBlockState();
-                        case 2:
-                            return Blocks.SMOOTH_SANDSTONE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:sandstone", data)).defaultBlockState();
+
                 case "sapling":
                 case "oak_sapling":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.OAK_SAPLING.defaultBlockState();
-                        case 1:
-                            return Blocks.SPRUCE_SAPLING.defaultBlockState();
-                        case 2:
-                            return Blocks.BIRCH_SAPLING.defaultBlockState();
-                        case 3:
-                            return Blocks.JUNGLE_SAPLING.defaultBlockState();
-                        case 4:
-                            return Blocks.ACACIA_SAPLING.defaultBlockState();
-                        case 5:
-                            return Blocks.DARK_OAK_SAPLING.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:sapling", data)).defaultBlockState();
+
                 case "skull":
                 case "skeleton_skull":
                     return Blocks.SKELETON_SKULL.defaultBlockState().setValue(SkullBlock.ROTATION, data);
                 case "sponge":
-                    switch (data) {
+                    switch (data)
+                    {
                         case 0:
                         default:
                             return Blocks.SPONGE.defaultBlockState();
@@ -675,206 +394,40 @@ public class FabricLegacyMaterials {
                     }
                 case "stained_glass":
                 case "white_stained_glass":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_STAINED_GLASS.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_STAINED_GLASS.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_STAINED_GLASS.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_STAINED_GLASS.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_STAINED_GLASS.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_STAINED_GLASS.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_STAINED_GLASS.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_STAINED_GLASS.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_STAINED_GLASS.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_STAINED_GLASS.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_STAINED_GLASS.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_STAINED_GLASS.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_STAINED_GLASS.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_STAINED_GLASS.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_STAINED_GLASS.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stained_glass", data)).defaultBlockState();
+
                 case "stained_glass_pane":
                 case "white_stained_glass_pane":
                 case "thin_glass":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_STAINED_GLASS_PANE.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_STAINED_GLASS_PANE.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_STAINED_GLASS_PANE.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_STAINED_GLASS_PANE.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_STAINED_GLASS_PANE.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_STAINED_GLASS_PANE.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_STAINED_GLASS_PANE.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_STAINED_GLASS_PANE.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_STAINED_GLASS_PANE.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_STAINED_GLASS_PANE.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_STAINED_GLASS_PANE.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_STAINED_GLASS_PANE.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_STAINED_GLASS_PANE.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_STAINED_GLASS_PANE.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_STAINED_GLASS_PANE.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_STAINED_GLASS_PANE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stained_glass_pane", data)).defaultBlockState();
+
                 case "stained_hardened_clay":
                 case "stained_clay":
                 case "white_terracotta":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_TERRACOTTA.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_TERRACOTTA.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_TERRACOTTA.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_TERRACOTTA.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_TERRACOTTA.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_TERRACOTTA.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_TERRACOTTA.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_TERRACOTTA.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_TERRACOTTA.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_TERRACOTTA.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_TERRACOTTA.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_TERRACOTTA.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_TERRACOTTA.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_TERRACOTTA.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_TERRACOTTA.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_TERRACOTTA.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stained_hardened_clay", data)).defaultBlockState();
+
                 case "stone":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.STONE.defaultBlockState();
-                        case 1:
-                            return Blocks.GRANITE.defaultBlockState();
-                        case 2:
-                            return Blocks.POLISHED_GRANITE.defaultBlockState();
-                        case 3:
-                            return Blocks.DIORITE.defaultBlockState();
-                        case 4:
-                            return Blocks.POLISHED_DIORITE.defaultBlockState();
-                        case 5:
-                            return Blocks.ANDESITE.defaultBlockState();
-                        case 6:
-                            return Blocks.POLISHED_ANDESITE.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stone", data)).defaultBlockState();
+
                 case "stone_slab":
                 case "step":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.SMOOTH_STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 1:
-                            return Blocks.SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        //case 2:
-                        case 3:
-                            return Blocks.COBBLESTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 4:
-                            return Blocks.BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 5:
-                            return Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 6:
-                            return Blocks.NETHER_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 7:
-                            return Blocks.QUARTZ_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 8:
-                            return Blocks.SMOOTH_STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 9:
-                            return Blocks.SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        //case 10:
-                        case 11:
-                            return Blocks.COBBLESTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 12:
-                            return Blocks.BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 13:
-                            return Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 14:
-                            return Blocks.NETHER_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 15:
-                            return Blocks.QUARTZ_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stone_slab", data % 8))
+                            .defaultBlockState().setValue(SlabBlock.TYPE,
+                                    data >= 8 ? SlabType.TOP : SlabType.BOTTOM);
+
                 case "double_step":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.SMOOTH_STONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 1:
-                            return Blocks.SANDSTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        //case 2:
-                        case 3:
-                            return Blocks.COBBLESTONE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 4:
-                            return Blocks.BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 5:
-                            return Blocks.STONE_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 6:
-                            return Blocks.NETHER_BRICK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                        case 7:
-                            return Blocks.QUARTZ_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stone_slab", data % 8))
+                            .defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE);
+
                 case "stonebrick":
                 case "stone_bricks":
                 case "smooth_brick":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.STONE_BRICKS.defaultBlockState();
-                        case 1:
-                            return Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
-                        case 2:
-                            return Blocks.CRACKED_STONE_BRICKS.defaultBlockState();
-                        case 3:
-                            return Blocks.CHISELED_STONE_BRICKS.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:stonebrick", data)).defaultBlockState();
+
                 case "tallgrass":
                 case "long_grass":
-                    switch (data) {
+                    switch (data)
+                    {
                         case 1:
                         default:
                             return Blocks.GRASS.defaultBlockState();
@@ -884,72 +437,16 @@ public class FabricLegacyMaterials {
                 case "wooden_slab":
                 case "wood_step":
                 case "oak_slab":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 1:
-                            return Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 2:
-                            return Blocks.BIRCH_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 3:
-                            return Blocks.JUNGLE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 4:
-                            return Blocks.ACACIA_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 5:
-                            return Blocks.DARK_OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
-                        case 8:
-                            return Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 9:
-                            return Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 10:
-                            return Blocks.BIRCH_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 11:
-                            return Blocks.JUNGLE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 12:
-                            return Blocks.ACACIA_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                        case 13:
-                            return Blocks.DARK_OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP);
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:wooden_slab", data % 8))
+                            .defaultBlockState().setValue(SlabBlock.TYPE,
+                                    data >= 8 ? SlabType.TOP : SlabType.BOTTOM);
+
                 case "wool":
                 case "white_wool":
-                    switch (data) {
-                        case 0:
-                        default:
-                            return Blocks.WHITE_WOOL.defaultBlockState();
-                        case 1:
-                            return Blocks.ORANGE_WOOL.defaultBlockState();
-                        case 2:
-                            return Blocks.MAGENTA_WOOL.defaultBlockState();
-                        case 3:
-                            return Blocks.LIGHT_BLUE_WOOL.defaultBlockState();
-                        case 4:
-                            return Blocks.YELLOW_WOOL.defaultBlockState();
-                        case 5:
-                            return Blocks.LIME_WOOL.defaultBlockState();
-                        case 6:
-                            return Blocks.PINK_WOOL.defaultBlockState();
-                        case 7:
-                            return Blocks.GRAY_WOOL.defaultBlockState();
-                        case 8:
-                            return Blocks.LIGHT_GRAY_WOOL.defaultBlockState();
-                        case 9:
-                            return Blocks.CYAN_WOOL.defaultBlockState();
-                        case 10:
-                            return Blocks.PURPLE_WOOL.defaultBlockState();
-                        case 11:
-                            return Blocks.BLUE_WOOL.defaultBlockState();
-                        case 12:
-                            return Blocks.BROWN_WOOL.defaultBlockState();
-                        case 13:
-                            return Blocks.GREEN_WOOL.defaultBlockState();
-                        case 14:
-                            return Blocks.RED_WOOL.defaultBlockState();
-                        case 15:
-                            return Blocks.BLACK_WOOL.defaultBlockState();
-                    }
+                    return Registry.BLOCK.get(getFlatKey("minecraft:wool", data)).defaultBlockState();
 
-                    // Blocks with data
+
+                // Blocks with data
                 case "fire":
                     return Blocks.FIRE.defaultBlockState().setValue(FireBlock.AGE, data);
                 case "cake":
@@ -1061,7 +558,6 @@ public class FabricLegacyMaterials {
                     return getLeverOrButtonWithData(1, data);
                 case "wood_button":
                 case "wooden_button":
-                case "oak_button":
                     return getLeverOrButtonWithData(2, data);
                 case "wooden_door":
                 case "oak_door":
@@ -1283,7 +779,8 @@ public class FabricLegacyMaterials {
                 case "yellow_glazed_terracotta":
                     return getGlazedTerracottaWithData(15, data);
                 case "snow":
-                    switch (data) {
+                    switch(data)
+                    {
                         case 0:
                             return Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 1);
                         default:
@@ -1292,26 +789,51 @@ public class FabricLegacyMaterials {
                 default:
                     return null;
             }
-        } catch (IllegalArgumentException ex) {
-            if (OTG.getEngine().getLogger().getLogCategoryEnabled(LogCategory.CONFIGS)) {
+        }
+        catch (IllegalArgumentException ex)
+        {
+            if(OTG.getEngine().getLogger().getLogCategoryEnabled(LogCategory.CONFIGS))
+            {
                 OTG.getEngine().getLogger().log(LogLevel.ERROR, LogCategory.CONFIGS, "Could not parse block with data, illegal data: " + blockName + ":" + data + ". Exception: " + ex.getMessage());
+            }
+        }
+        catch (NullPointerException ex)
+        {
+            if(OTG.getEngine().getLogger().getLogCategoryEnabled(LogCategory.CONFIGS))
+            {
+                OTG.getEngine().getLogger().log(LogLevel.ERROR, LogCategory.CONFIGS, "Encountered a null pointer trying to parse " + blockName + ":" + data + ". Exception: " + ex.getMessage());
             }
         }
         return null;
     }
 
-    //
+    private static ResourceLocation getFlatKey (String name, int data) throws NullPointerException
+    {
+        String result = ItemStackTheFlatteningFix.updateItem(name, data);
+        if (result == null)
+        {
+            throw new NullPointerException();
+        }
+        return new ResourceLocation(result);
+    }
 
-    private static BlockState getAnvilWithData(int material, int data) {
+    private static BlockState getAnvilWithData (int material, int data)
+    {
         Direction orientation = getBit(data, 0) == 0 ? Direction.NORTH : Direction.WEST;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 // 0x4 0x8 state: regular (0x4 & 0x8 = 0), slightly damaged (0x4 = 1), very damaged (0x8 = 1)
-                if ((getBit(data, 2) & getBit(data, 3)) == 0) {
+                if ((getBit(data, 2) & getBit(data, 3)) == 0)
+                {
                     return Blocks.ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, orientation);
-                } else if (getBit(data, 2) == 1) {
+                }
+                else if (getBit(data, 2) == 1)
+                {
                     return Blocks.CHIPPED_ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, orientation);
-                } else if (getBit(data, 3) == 1) {
+                }
+                else if (getBit(data, 3) == 1)
+                {
                     return Blocks.DAMAGED_ANVIL.defaultBlockState().setValue(AnvilBlock.FACING, orientation);
                 }
             case 1:
@@ -1323,52 +845,54 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getLogWithData(int data) {
+    private static BlockState getLogWithData (int data)
+    {
         int material = getBits(data, 0, 2);
         int orientation = getBits(data, 2, 2);
         Direction.Axis axisDirection = orientation == 0 ? Direction.Axis.Y : orientation == 1 ? Direction.Axis.X : orientation == 2 ? Direction.Axis.Z : Direction.Axis.Y;
         boolean bark = orientation == 3;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 if (bark) return Blocks.OAK_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.OAK_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             case 1:
-                if (bark)
-                    return Blocks.SPRUCE_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
+                if (bark) return Blocks.SPRUCE_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.SPRUCE_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             case 2:
                 if (bark) return Blocks.BIRCH_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.BIRCH_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             case 3:
-                if (bark)
-                    return Blocks.JUNGLE_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
+                if (bark) return Blocks.JUNGLE_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.JUNGLE_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             default:
                 return Blocks.OAK_LOG.defaultBlockState();
         }
     }
 
-    private static BlockState getLog2WithData(int data) {
+    private static BlockState getLog2WithData (int data)
+    {
         int material = getBits(data, 0, 2);
         int orientation = getBits(data, 2, 2);
         Direction.Axis axisDirection = orientation == 0 ? Direction.Axis.Y : orientation == 1 ? Direction.Axis.X : orientation == 2 ? Direction.Axis.Z : Direction.Axis.Y;
         boolean bark = orientation == 3;
-        switch (material) {
+        switch (material)
+        {
             case 0:
-                if (bark)
-                    return Blocks.ACACIA_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
+                if (bark) return Blocks.ACACIA_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.ACACIA_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             case 1:
-                if (bark)
-                    return Blocks.DARK_OAK_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
+                if (bark) return Blocks.DARK_OAK_WOOD.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
                 return Blocks.DARK_OAK_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, axisDirection);
             default:
                 return Blocks.ACACIA_LOG.defaultBlockState();
         }
     }
 
-    private static BlockState getQuartzBlockWithData(int data) {
-        switch (data) {
+    private static BlockState getQuartzBlockWithData (int data)
+    {
+        switch (data)
+        {
             case 0:
             default:
                 return Blocks.QUARTZ_BLOCK.defaultBlockState();
@@ -1383,10 +907,13 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getTorchWithData(int material, int data) {
-        switch (material) {
+    private static BlockState getTorchWithData (int material, int data)
+    {
+        switch (material)
+        {
             case 0:
-                switch (data) {
+                switch (data)
+                {
                     case 0:
                     case 5:
                     default:
@@ -1401,7 +928,8 @@ public class FabricLegacyMaterials {
                         return Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, Direction.NORTH);
                 }
             case 1:
-                switch (data) {
+                switch (data)
+                {
                     case 0:
                     case 5:
                     default:
@@ -1416,7 +944,8 @@ public class FabricLegacyMaterials {
                         return Blocks.REDSTONE_WALL_TORCH.defaultBlockState().setValue(RedstoneWallTorchBlock.LIT, false).setValue(RedstoneWallTorchBlock.FACING, Direction.NORTH);
                 }
             case 2:
-                switch (data) {
+                switch (data)
+                {
                     case 0:
                     case 5:
                     default:
@@ -1435,10 +964,12 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getRailsWithData(int material, int data) {
+    private static BlockState getRailsWithData (int material, int data)
+    {
         int shape = getBits(data, 0, 3);
         int active = getBit(data, 3);
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.POWERED_RAIL.defaultBlockState().setValue(PoweredRailBlock.SHAPE, getRailShape(shape)).setValue(PoweredRailBlock.POWERED, active == 1);
             case 1:
@@ -1450,11 +981,13 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getStairsWithData(int material, int data) {
+    private static BlockState getStairsWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         int half = getBit(data, 2);
-        BlockState output = null;
-        switch (material) {
+        BlockState output;
+        switch (material)
+        {
             case 0:
                 output = Blocks.OAK_STAIRS.defaultBlockState();
                 break;
@@ -1508,12 +1041,14 @@ public class FabricLegacyMaterials {
                 .setValue(StairBlock.HALF, half == 0 ? Half.BOTTOM : Half.TOP);
     }
 
-    private static BlockState getLeverOrButtonWithData(int material, int data) {
+    private static BlockState getLeverOrButtonWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 3);
         int powered = getBit(data, 3);
-        AttachFace face = facing == 0 || facing == 7 ? AttachFace.CEILING : facing == 1 || facing == 2 || facing == 3 || facing == 4 ? AttachFace.WALL : facing == 5 || facing == 6 ? AttachFace.FLOOR : AttachFace.FLOOR;
+        AttachFace face = facing == 0 || facing == 7 ? AttachFace.CEILING : facing == 1 || facing == 2 || facing == 3 || facing == 4 ? AttachFace.WALL : AttachFace.FLOOR;
 
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.LEVER.defaultBlockState().setValue(LeverBlock.FACE, face).setValue(LeverBlock.FACING, getFacingLever(facing)).setValue(LeverBlock.POWERED, powered == 1);
             case 1:
@@ -1525,7 +1060,8 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getDoorWithData(int material, int data) {
+    private static BlockState getDoorWithData (int material, int data)
+    {
         // 0x8 Half
         // Top half of door:
         // 0x1 Hinge side
@@ -1539,7 +1075,8 @@ public class FabricLegacyMaterials {
         int facing = getBits(data, 0, 2);
         int open = getBit(data, 2);
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.OAK_DOOR.defaultBlockState();
                 break;
@@ -1576,21 +1113,25 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getSignPostWithData(int data) {
+    private static BlockState getSignPostWithData (int data)
+    {
         int rotation = getBits(data, 0, 4);
         // TODO: Hopefully rotation is still mapped to the same int values as 1.12..
         return Blocks.OAK_SIGN.defaultBlockState().setValue(StandingSignBlock.ROTATION, rotation);
     }
 
-    private static BlockState getWallSignWithData(int data) {
+    private static BlockState getWallSignWithData (int data)
+    {
         int facing = getBits(data, 0, 3);
         return Blocks.OAK_WALL_SIGN.defaultBlockState().setValue(WallSignBlock.FACING, getFacingNorthSouthWestEast(facing));
     }
 
     // TODO: Can't find information on 1.12 command block block data, what about facing?
-    private static BlockState getCommandBlockWithData(int material, int data) {
+    private static BlockState getCommandBlockWithData (int material, int data)
+    {
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.COMMAND_BLOCK.defaultBlockState();
                 break;
@@ -1606,9 +1147,11 @@ public class FabricLegacyMaterials {
         return blockState;
     }
 
-    private static BlockState getShulkerBoxWithData(int material, int data) {
+    private static BlockState getShulkerBoxWithData (int material, int data)
+    {
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.WHITE_SHULKER_BOX.defaultBlockState();
                 break;
@@ -1666,9 +1209,11 @@ public class FabricLegacyMaterials {
         return blockState.setValue(ShulkerBoxBlock.FACING, getFacingDownEastNorthSouthUpWest(data));
     }
 
-    private static BlockState getLadderChestOrFurnaceWithData(int material, int data) {
+    private static BlockState getLadderChestOrFurnaceWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 3);
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, getFacingNorthSouthWestEast(facing));
             case 1:
@@ -1686,10 +1231,12 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getDispenserHopperDropperWithData(int material, int data) {
+    private static BlockState getDispenserHopperDropperWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 3);
         int active = getBit(data, 3);
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.DISPENSER.defaultBlockState().setValue(DispenserBlock.FACING, getFacingDownUpNorthSouthWestEast(facing)).setValue(DispenserBlock.TRIGGERED, active == 1);
             case 1:
@@ -1701,9 +1248,11 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getJackOLanternOrPumpkinWithData(int material, int data) {
+    private static BlockState getJackOLanternOrPumpkinWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.CARVED_PUMPKIN.defaultBlockState().setValue(CarvedPumpkinBlock.FACING, getFacingSouthWestNorthEast(facing));
             case 1:
@@ -1713,17 +1262,20 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getObserverWithData(int data) {
+    private static BlockState getObserverWithData (int data)
+    {
         int facing = getBits(data, 0, 3);
         int powered = getBit(data, 3);
         return Blocks.OBSERVER.defaultBlockState().setValue(ObserverBlock.FACING, getFacingDownUpNorthSouthWestEast(facing)).setValue(ObserverBlock.POWERED, powered == 1);
     }
 
-    private static BlockState getRepeaterWithData(int material, int data) {
+    private static BlockState getRepeaterWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         int delay = getBits(data, 2, 2) + 1;
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.REPEATER.defaultBlockState().setValue(RepeaterBlock.POWERED, false);
                 break;
@@ -1739,7 +1291,8 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getComparatorWithData(int material, int data) {
+    private static BlockState getComparatorWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         int mode = getBit(data, 2);
         int powered = material == 1 ? 1 : getBit(data, 3);
@@ -1750,7 +1303,8 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getBedBlockWithData(int data) {
+    private static BlockState getBedBlockWithData (int data)
+    {
         int facing = getBits(data, 0, 2);
         int occupied = getBit(data, 2);
         int part = getBit(data, 3);
@@ -1761,12 +1315,14 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getTrapDoorBlockWithData(int material, int data) {
+    private static BlockState getTrapDoorBlockWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         int open = getBit(data, 2);
         int half = getBit(data, 3);
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.OAK_TRAPDOOR.defaultBlockState();
                 break;
@@ -1783,10 +1339,12 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getPistonWithData(int material, int data) {
+    private static BlockState getPistonWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 3);
         int extended = getBit(data, 3);
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 return Blocks.PISTON.defaultBlockState().setValue(PistonBaseBlock.EXTENDED, extended == 1).setValue(PistonBaseBlock.FACING, getFacingDownUpNorthSouthWestEast(facing));
             case 1:
@@ -1796,7 +1354,8 @@ public class FabricLegacyMaterials {
         }
     }
 
-    private static BlockState getPistonHeadWithData(int data) {
+    private static BlockState getPistonHeadWithData (int data)
+    {
         int facing = getBits(data, 0, 3);
         int type = getBit(data, 3);
         return Blocks.PISTON_HEAD.defaultBlockState()
@@ -1805,7 +1364,8 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getHugeMushroomWithData(int material, int data) {
+    private static BlockState getHugeMushroomWithData (int material, int data)
+    {
         boolean down = data == 14 || data == 15;
         boolean up = data == 1 || data == 2 || data == 3 || data == 4 || data == 5 || data == 6 || data == 7 || data == 8 || data == 9 || data == 14 || data == 15;
         boolean north = data == 1 || data == 2 || data == 3 || data == 10 || data == 14 || data == 15;
@@ -1813,10 +1373,14 @@ public class FabricLegacyMaterials {
         boolean south = data == 7 || data == 8 || data == 9 || data == 10 || data == 14 || data == 15;
         boolean west = data == 1 || data == 4 || data == 7 || data == 10 || data == 14 || data == 15;
         BlockState blockState;
-        if (data == 10 || data == 15) {
+        if (data == 10 || data == 15)
+        {
             blockState = Blocks.MUSHROOM_STEM.defaultBlockState();
-        } else {
-            switch (material) {
+        }
+        else
+        {
+            switch (material)
+            {
                 case 0:
                     blockState = Blocks.BROWN_MUSHROOM_BLOCK.defaultBlockState();
                     break;
@@ -1837,7 +1401,8 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getVineWithData(int data) {
+    private static BlockState getVineWithData (int data)
+    {
         int south = getBit(data, 0);
         int west = getBit(data, 1);
         int north = getBit(data, 2);
@@ -1852,11 +1417,13 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getFenceGateWithData(int material, int data) {
+    private static BlockState getFenceGateWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         int open = getBit(data, 2);
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.BIRCH_FENCE_GATE.defaultBlockState();
                 break;
@@ -1884,13 +1451,15 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getCocoaWithData(int data) {
+    private static BlockState getCocoaWithData (int data)
+    {
         int facing = getBits(data, 0, 2);
         int age = getBits(data, 2, 2);
         return Blocks.COCOA.defaultBlockState().setValue(CocoaBlock.FACING, getFacingSouthWestNorthEast(facing)).setValue(CocoaBlock.AGE, age);
     }
 
-    private static BlockState getTripWireHookWithData(int data) {
+    private static BlockState getTripWireHookWithData (int data)
+    {
         int facing = getBits(data, 0, 2);
         int attached = getBit(data, 2);
         int powered = getBit(data, 3);
@@ -1901,21 +1470,25 @@ public class FabricLegacyMaterials {
                 ;
     }
 
-    private static BlockState getEndPortalFrameWithData(int data) {
+    private static BlockState getEndPortalFrameWithData (int data)
+    {
         int facing = getBits(data, 0, 2);
         int eye = getBit(data, 2);
         return Blocks.END_PORTAL_FRAME.defaultBlockState().setValue(EndPortalFrameBlock.HAS_EYE, eye == 1).setValue(EndPortalFrameBlock.FACING, getFacingSouthWestNorthEast(facing));
     }
 
-    private static BlockState getStructureBlockWithData(int data) {
+    private static BlockState getStructureBlockWithData (int data)
+    {
         StructureMode structureBlockMode = data == 0 ? StructureMode.DATA : data == 1 ? StructureMode.SAVE : data == 2 ? StructureMode.LOAD : data == 3 ? StructureMode.LOAD : StructureMode.DATA;
         return Blocks.STRUCTURE_BLOCK.defaultBlockState().setValue(StructureBlock.MODE, structureBlockMode);
     }
 
-    private static BlockState getGlazedTerracottaWithData(int material, int data) {
+    private static BlockState getGlazedTerracottaWithData (int material, int data)
+    {
         int facing = getBits(data, 0, 2);
         BlockState blockState;
-        switch (material) {
+        switch (material)
+        {
             case 0:
                 blockState = Blocks.BLACK_GLAZED_TERRACOTTA.defaultBlockState();
                 break;
@@ -1970,7 +1543,8 @@ public class FabricLegacyMaterials {
         return blockState.setValue(GlazedTerracottaBlock.FACING, getFacingSouthWestNorthEast(facing));
     }
 
-    private static BlockState getTripWireWithData(int data) {
+    private static BlockState getTripWireWithData (int data)
+    {
         int active = getBit(data, 0);
         int attached = getBit(data, 2);
         int disarmed = getBit(data, 3);
@@ -1983,64 +1557,68 @@ public class FabricLegacyMaterials {
 
     //
 
-    private static Direction.Axis getAxisXYZ(int data) {
-        switch (data) {
+    private static Direction.Axis getAxisXYZ (int data)
+    {
+        switch (data)
+        {
             case 0:
                 return Direction.Axis.X;
-            case 1:
-                return Direction.Axis.Y;
             case 2:
                 return Direction.Axis.Z;
+            case 1:
             default:
                 return Direction.Axis.Y;
         }
     }
 
-    private static Direction.Axis getAxisXZ(int data) {
-        switch (data) {
-            case 1:
-                return Direction.Axis.X;
+    private static Direction.Axis getAxisXZ (int data)
+    {
+        switch (data)
+        {
             case 2:
                 return Direction.Axis.Z;
+            case 1:
             default:
                 return Direction.Axis.X;
         }
     }
 
-    private static Direction getFacingSouthWestNorthEast(int data) {
-        switch (data) {
-            case 0:
-                return Direction.SOUTH;
+    private static Direction getFacingSouthWestNorthEast (int data)
+    {
+        switch (data)
+        {
             case 1:
                 return Direction.WEST;
             case 2:
                 return Direction.NORTH;
             case 3:
                 return Direction.EAST;
+            case 0:
             default:
                 return Direction.SOUTH;
         }
     }
 
-    private static Direction getFacingNorthSouthWestEast(int data) {
-        switch (data) {
-            case 2:
-                return Direction.NORTH;
+    private static Direction getFacingNorthSouthWestEast (int data)
+    {
+        switch (data)
+        {
             case 3:
                 return Direction.SOUTH;
             case 4:
                 return Direction.WEST;
             case 5:
                 return Direction.EAST;
+            case 2:
             default:
                 return Direction.NORTH;
         }
     }
 
-    private static Direction getFacingDownUpNorthSouthWestEast(int data) {
-        switch (data) {
-            case 0:
-                return Direction.DOWN;
+    private static Direction getFacingDownUpNorthSouthWestEast (int data)
+    {
+        switch (data)
+        {
             case 1:
                 return Direction.UP;
             case 2:
@@ -2051,51 +1629,55 @@ public class FabricLegacyMaterials {
                 return Direction.WEST;
             case 5:
                 return Direction.EAST;
+            case 0:
             default:
                 return Direction.DOWN;
         }
     }
 
-    private static Direction getFacingSouthNorthEastWest(int data) {
-        switch (data) {
-            case 0:
-                return Direction.SOUTH;
+    private static Direction getFacingSouthNorthEastWest (int data)
+    {
+        switch (data)
+        {
             case 1:
                 return Direction.NORTH;
             case 2:
                 return Direction.EAST;
             case 3:
                 return Direction.WEST;
+            case 0:
             default:
                 return Direction.SOUTH;
         }
     }
 
-    private static Direction getFacingEastSouthWestNorth(int data) {
-        switch (data) {
-            case 0:
-                return Direction.EAST;
+    private static Direction getFacingEastSouthWestNorth (int data)
+    {
+        switch (data)
+        {
             case 1:
                 return Direction.SOUTH;
             case 2:
                 return Direction.WEST;
             case 3:
                 return Direction.NORTH;
+            case 0:
             default:
                 return Direction.EAST;
         }
     }
 
-    private static Direction getFacingEastWestSouthNorth(int data) {
-        switch (data) {
-            case 0:
-                return Direction.EAST;
+    private static Direction getFacingEastWestSouthNorth (int data)
+    {
+        switch (data)
+        {
             case 1:
                 return Direction.WEST;
             case 2:
                 return Direction.SOUTH;
             case 3:
                 return Direction.NORTH;
+            case 0:
             default:
                 return Direction.EAST;
         }
@@ -2103,8 +1685,10 @@ public class FabricLegacyMaterials {
 
     // TODO: Couldn't find docs for 1.12.2 shulker box
     // data values, these rotations may be incorrect.
-    private static Direction getFacingDownEastNorthSouthUpWest(int data) {
-        switch (data) {
+    private static Direction getFacingDownEastNorthSouthUpWest (int data)
+    {
+        switch (data)
+        {
             case 0:
                 return Direction.DOWN;
             case 1:
@@ -2113,17 +1697,18 @@ public class FabricLegacyMaterials {
                 return Direction.NORTH;
             case 3:
                 return Direction.SOUTH;
-            case 4:
-                return Direction.UP;
             case 5:
                 return Direction.WEST;
+            case 4:
             default:
                 return Direction.UP;
         }
     }
 
-    private static Direction.Axis getPillarAxisXYZ(int data) {
-        switch (data) {
+    private static Direction.Axis getPillarAxisXYZ(int data)
+    {
+        switch(data)
+        {
             case 0:
                 return Direction.Axis.Y;
             case 4:
@@ -2136,12 +1721,10 @@ public class FabricLegacyMaterials {
     }
 
     // TODO: Test this
-    private static Direction getFacingLever(int data) {
-        switch (data) {
-            case 0:
-            case 1:
-            case 6:
-                return Direction.EAST;
+    private static Direction getFacingLever (int data)
+    {
+        switch (data)
+        {
             case 2:
                 return Direction.WEST;
             case 3:
@@ -2150,30 +1733,34 @@ public class FabricLegacyMaterials {
                 return Direction.SOUTH;
             case 4:
                 return Direction.NORTH;
+            case 0:
+            case 1:
+            case 6:
             default:
                 return Direction.EAST;
         }
     }
 
-    private static Direction getFacingButton(int data) {
-        switch (data) {
-            case 1:
-                return Direction.EAST;
+    private static Direction getFacingButton (int data)
+    {
+        switch (data)
+        {
             case 2:
                 return Direction.WEST;
             case 3:
                 return Direction.SOUTH;
             case 4:
                 return Direction.NORTH;
+            case 1:
             default:
                 return Direction.EAST;
         }
     }
 
-    private static RailShape getRailShape(int shape) {
-        switch (shape) {
-            case 0:
-                return RailShape.NORTH_SOUTH;
+    private static RailShape getRailShape (int shape)
+    {
+        switch (shape)
+        {
             case 1:
                 return RailShape.EAST_WEST;
             case 2:
@@ -2192,20 +1779,24 @@ public class FabricLegacyMaterials {
                 return RailShape.NORTH_WEST;
             case 9:
                 return RailShape.NORTH_EAST;
+            case 0:
             default:
                 return RailShape.NORTH_SOUTH;
         }
     }
 
-    private static int getBits(int source, int index, int length) {
+    private static int getBits (int source, int index, int length)
+    {
         int bits = 0;
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
+        {
             bits = bits | (getBit(source, index + i) << i);
         }
         return bits;
     }
 
-    private static int getBit(int source, int index) {
+    private static int getBit (int source, int index)
+    {
         return ((source & (1 << index)) >> index);
     }
 }
